@@ -27,6 +27,7 @@
 | Skill | Description | Type |
 |-------|-------------|------|
 | [**task-triage**](./task-triage/) | Task triage. 5+1 dimension scoring to quickly decide if a task is worth doing and whether you should be the one doing it. | Pure Markdown |
+| [**cc-shield**](./cc-shield/) | Claude Code account protection. Disable telemetry, clean device fingerprints, safe account switching. | Pure Markdown |
 
 ### Standalone Repos
 

@@ -27,6 +27,7 @@
 | Skill | 说明 | 类型 |
 |-------|------|------|
 | [**task-triage**](./task-triage/) | 任务分诊。5+1 维度打分，帮你快速判断一件事值不值得做、该不该你做。 | 纯 Markdown |
+| [**cc-shield**](./cc-shield/) | Claude Code 账号保护。关闭遥测、清理设备指纹、安全换号。 | 纯 Markdown |
 
 ### 独立仓库
 
