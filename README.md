@@ -1,3 +1,7 @@
+<p align="right">
+  <strong>中文</strong> | <a href="./README_EN.md">English</a>
+</p>
+
 <p align="center">
   <img src="https://img.shields.io/badge/Claude_Code-Skills-8B5CF6?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJ3aGl0ZSI+PHBhdGggZD0iTTEyIDJMMyA3djEwbDkgNSA5LTVWN2wtOS01em0wIDIuMThsNi44MyAzLjhMMTIgMTEuOCA1LjE3IDcuOTggMTIgNC4xOHpNNSA5LjA2bDYgMy4zNHY2LjUzTDUgMTUuNnYtNi41M3ptMTQgNi41M2wtNiAzLjM0di02LjUzbDYtMy4zNHY2LjUzeiIvPjwvc3ZnPg==&logoColor=white" alt="Claude Code Skills">
 </p>
@@ -5,8 +9,8 @@
 <h1 align="center">Suyuan's Skill Collection</h1>
 
 <p align="center">
-  <strong>AI-native productivity tools built by a real practitioner, not a prompt engineer.</strong><br>
-  <sub>Every skill here was born from actual work — shipping products, managing teams, making decisions under pressure.</sub>
+  <strong>从真实工作中长出来的 AI 生产力工具，不是提示词模板。</strong><br>
+  <sub>每个 Skill 都来自实战：做产品、带团队、在压力下做决策。</sub>
 </p>
 
 <p align="center">
@@ -19,68 +23,68 @@
 
 ## Skills
 
-### In This Repo
+### 本仓库内
 
-| Skill | Description | Type |
-|-------|-------------|------|
-| [**task-triage**](./task-triage/) | 5+1 dimension scoring system for task prioritization. Helps you decide what's worth doing, what to delegate, and what to cut. | Pure Markdown |
+| Skill | 说明 | 类型 |
+|-------|------|------|
+| [**task-triage**](./task-triage/) | 任务分诊：5+1 维度打分系统，帮你判断一件事值不值得做、该不该你做、做完会不会拖你下水。 | 纯 Markdown |
 
-### Standalone Repos
+### 独立仓库
 
-| Skill | Description | Repo |
-|-------|-------------|------|
-| **GET-biji** | Auto-sync voice notes from [Get Notes](https://biji.com) (24/7 recording card) to local Markdown knowledge base. | [suyuan2022/GET-biji](https://github.com/suyuan2022/GET-biji) |
+| Skill | 说明 | 仓库 |
+|-------|------|------|
+| **GET-biji** | 自动同步 [Get Notes](https://biji.com)（24/7 录音卡）的语音笔记到本地 Markdown 知识库。 | [suyuan2022/GET-biji](https://github.com/suyuan2022/GET-biji) |
 
 ---
 
-## Installation
+## 安装
 
 ```bash
-# Clone the repo
+# 克隆仓库
 git clone https://github.com/suyuan2022/suyuan-skill.git
 
-# Copy the skill you want into your Claude Code skills directory
+# 把你想要的 skill 复制到 Claude Code 的 skills 目录
 cp -r suyuan-skill/task-triage ~/.claude/skills/task-triage
 ```
 
-Or just copy the `SKILL.md` file — that's all you need for pure Markdown skills.
+纯 Markdown 类型的 skill，只需要复制 `SKILL.md` 就够了。
 
 ---
 
-## What Makes These Different
+## 这些 Skill 有什么不同
 
-These aren't prompt templates or toy demos. They come from running a startup with AI:
+不是提示词模板，不是 demo。它们来自真实的创业场景：
 
-- **task-triage** was born from a late-night roundtable discussion about why smart people stay busy but never move the needle. The "Tail Cost" dimension came from realizing that some tasks look productive but actually drain your capacity for the important stuff — like doom-scrolling dressed up as "research".
+- **task-triage** 诞生于一次深夜圆桌讨论：为什么聪明人总是很忙，却推不动真正重要的事？"尾巴成本"这个维度来自一个发现——有些任务看起来在产出，实际上在消耗你做大事的容量，就像刷信息流伪装成"调研"。
 
-- **GET-biji** exists because a 24/7 recording device generates gigabytes of unstructured voice data, and the only way to make it useful is a pipeline that syncs, transcribes, and organizes it into searchable Markdown.
-
----
-
-## Philosophy
-
-> Your time and attention are the scarcest resources. Every low-value task you accept is a high-value task you reject.
-
-These skills follow three principles:
-
-- **Opinionated over flexible** — They make judgments, not menus. A triage skill that says "it depends" is useless.
-- **Born from pain** — Every skill solves a problem I actually had, not a problem I imagined someone might have.
-- **AI-native** — Designed for Claude Code's skill system, not retrofitted from something else.
+- **GET-biji** 的存在是因为一个 24 小时录音设备会产生海量的非结构化语音数据，唯一让它有用的方式是建一条管道：同步、转录、整理成可搜索的 Markdown。
 
 ---
 
-## Contributing
+## 理念
 
-Got a skill that was born from real work? PRs welcome.
+> 你的时间和注意力是最稀缺的资源。每接一个低价值任务，就是在拒绝一个高价值任务。
 
-- One skill per directory
-- Must include a `SKILL.md` with proper frontmatter
-- No hardcoded personal paths or credentials
-- Brief description of the problem it solves in your PR
+三条原则：
+
+- **给判断，不给菜单** — 一个说"看情况"的分诊工具毫无价值。
+- **从痛点中长出来** — 每个 skill 解决的都是我真正遇到过的问题，不是想象中别人可能有的问题。
+- **AI 原生** — 为 Claude Code 的 skill 系统设计，不是从别的地方硬塞进来的。
 
 ---
 
-## License
+## 贡献
+
+如果你也有从实战中长出来的 skill，欢迎 PR。
+
+- 一个 skill 一个目录
+- 必须包含带 frontmatter 的 `SKILL.md`
+- 不要硬编码个人路径或凭证
+- PR 里简单说明它解决什么问题
+
+---
+
+## 许可证
 
 MIT
 
