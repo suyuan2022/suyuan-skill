@@ -9,8 +9,7 @@
 <h1 align="center">Suyuan's Skill Collection</h1>
 
 <p align="center">
-  <strong>AI-native productivity tools built by a real practitioner, not a prompt engineer.</strong><br>
-  <sub>Every skill here was born from actual work — shipping products, managing teams, making decisions under pressure.</sub>
+  Skills I built while working with Claude Code daily. Open-sourced for anyone who finds them useful.
 </p>
 
 <p align="center">
@@ -27,7 +26,7 @@
 
 | Skill | Description | Type |
 |-------|-------------|------|
-| [**task-triage**](./task-triage/) | 5+1 dimension scoring system for task prioritization. Helps you decide what's worth doing, what to delegate, and what to cut. | Pure Markdown |
+| [**task-triage**](./task-triage/) | Task triage. 5+1 dimension scoring to quickly decide if a task is worth doing and whether you should be the one doing it. | Pure Markdown |
 
 ### Standalone Repos
 
@@ -40,42 +39,19 @@
 ## Installation
 
 ```bash
-# Clone the repo
 git clone https://github.com/suyuan2022/suyuan-skill.git
 
 # Copy the skill you want into your Claude Code skills directory
 cp -r suyuan-skill/task-triage ~/.claude/skills/task-triage
 ```
 
-Or just copy the `SKILL.md` file — that's all you need for pure Markdown skills.
-
----
-
-## What Makes These Different
-
-These aren't prompt templates or toy demos. They come from running a startup with AI:
-
-- **task-triage** was born from a late-night roundtable discussion about why smart people stay busy but never move the needle. The "Tail Cost" dimension came from realizing that some tasks look productive but actually drain your capacity for the important stuff — like doom-scrolling dressed up as "research".
-
-- **GET-biji** exists because a 24/7 recording device generates gigabytes of unstructured voice data, and the only way to make it useful is a pipeline that syncs, transcribes, and organizes it into searchable Markdown.
-
----
-
-## Philosophy
-
-> Your time and attention are the scarcest resources. Every low-value task you accept is a high-value task you reject.
-
-These skills follow three principles:
-
-- **Opinionated over flexible** — They make judgments, not menus. A triage skill that says "it depends" is useless.
-- **Born from pain** — Every skill solves a problem I actually had, not a problem I imagined someone might have.
-- **AI-native** — Designed for Claude Code's skill system, not retrofitted from something else.
+For pure Markdown skills, just copy the `SKILL.md` file.
 
 ---
 
 ## Contributing
 
-Got a skill that was born from real work? PRs welcome.
+PRs welcome.
 
 - One skill per directory
 - Must include a `SKILL.md` with proper frontmatter
@@ -91,5 +67,5 @@ MIT
 ---
 
 <p align="center">
-  <sub>Built by <a href="https://github.com/suyuan2022">Suyuan</a> · AI practitioner, not just an AI user</sub>
+  <sub>Built by <a href="https://github.com/suyuan2022">Suyuan</a></sub>
 </p>
