@@ -1,39 +1,50 @@
 ---
 name: cc-shield
 description: |-
-  Claude Code privacy & account protection. Close telemetry, clean device fingerprints,
-  switch accounts safely. Use when user mentions: telemetry, privacy, ban, account switch,
-  fingerprint, device ID, blocked, suspended, rate limit, or wants to protect their Claude Code account.
+  Claude Code account protection — disable telemetry, clean device fingerprints, safe account switching after ban.
+  Trigger this skill whenever the user mentions ANY of these: telemetry, privacy, ban, account switch,
+  fingerprint, device ID, blocked, suspended, rate limit, data collection, analytics tracking,
+  or Chinese equivalents: 遥测, 隐私, 封号, 换号, 指纹, 设备ID, 被封, 被ban, 限流, 数据收集,
+  关闭追踪, 账号保护, 防封, 清理设备信息, 隐私审查, 隐私检查.
+  Also trigger when the user says things like "protect my account", "stop tracking",
+  "Claude Code is collecting data", "I got banned", "switch to a new account",
+  "what does Claude Code know about me", "帮我关掉遥测", "我被封了", "怎么换号",
+  "Claude Code 收集了什么数据", "帮我查一下隐私", even if they don't mention this skill by name.
 ---
 
 # CC Shield — Claude Code Account Protection
 
-Protect your Claude Code account by managing telemetry, device identity, and safe account switching.
+## How to use this skill
 
-## Background Knowledge
+When a user asks for help, figure out which scenario they need based on their message:
 
-Claude Code sends two types of telemetry data to Anthropic:
+- Mentions **telemetry, tracking, data collection, privacy, 关遥测, 隐私保护** → **Scenario 1** (daily protection)
+- Mentions **banned, blocked, suspended, switch account, 被封, 换号, 新账号** → **Scenario 2** (account switch)
+- Mentions **audit, check, inspect, what data, 查一下, 检查, 审查** → **Scenario 3** (privacy audit)
+- If unclear, ask one question to clarify: "You want to disable tracking, switch accounts, or check what's stored?"
 
-- **DataDog** — behavioral analytics (tool usage, errors, performance)
-- **First-Party (1P)** — event logging to `api.anthropic.com/api/event_logging/batch`
+## Background
 
-Every API request also carries a **device ID** (random 64-char hex stored in `~/.claude.json` as `userID`), an **account UUID**, and a **session ID**. Anthropic can correlate accounts sharing the same device ID.
+Claude Code collects telemetry through two channels:
 
-Ban decisions are made **server-side** based on account behavior, not device fingerprints. But device ID is used as an auxiliary signal to link accounts.
+- **DataDog** (third-party analytics) — tool usage, errors, performance metrics
+- **Anthropic's own servers** — event logging to `api.anthropic.com/api/event_logging/batch`
 
-## Scenario 1: Daily Protection (Close Telemetry)
+Each API request carries a **device ID** (random 64-char hex in `~/.claude.json`), **account UUID**, and **session ID**. Anthropic can see when multiple accounts share the same device ID.
 
-**When:** User wants to reduce data collection during normal use. No ban, no account switch.
+Bans are **account-level** — they target your account based on behavior, not your hardware. But device ID is a linking signal: if a banned account and a new account share the same device ID, the new one is at risk.
 
-**Action:** Add `DISABLE_TELEMETRY` to the user's Claude Code settings.
+The `DISABLE_TELEMETRY` env var is an officially supported privacy control built into Claude Code's source — not a hack or exploit.
+
+## Scenario 1: Disable Telemetry (Daily Protection)
+
+For users who want to stop data collection during normal use. No ban, no account switch.
 
 ### Steps
 
-1. Read the user's settings file. Check both paths:
-   - `~/.claude/settings.json` (user-level)
-   - `~/.claude/settings.local.json` (local override)
+1. Read `~/.claude/settings.json`. If it doesn't exist, create it with `{}`.
 
-2. Add the environment variable to the `env` block:
+2. Merge `DISABLE_TELEMETRY` into the `env` block — preserve any existing env vars:
 
 ```json
 {
@@ -43,51 +54,37 @@ Ban decisions are made **server-side** based on account behavior, not device fin
 }
 ```
 
-If the `env` block already exists, merge — do NOT overwrite existing env vars.
+3. Tell the user: telemetry is now off, takes effect on next Claude Code launch.
 
-3. Confirm to user: telemetry is now off. Takes effect on next Claude Code launch.
+### What changes
 
-### What this does
+- Both DataDog and first-party analytics channels stop sending data
+- Conversations and tool use work exactly the same
+- GrowthBook feature flags still load (new features still appear)
 
-- Kills both DataDog and 1P analytics channels
-- API requests (your actual conversations) still work normally
-- GrowthBook feature flags still load (new features still work)
+### Nuclear mode (optional)
 
-### Optional: nuclear mode
+If the user wants maximum privacy, also add `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: "1"` to the env block. This additionally kills feature flag fetching, auto-update checks, and release notes. Tradeoff: remote feature flags won't activate.
 
-If the user wants maximum privacy, also add:
+## Scenario 2: Safe Account Switch (After Ban)
 
-```json
-{
-  "env": {
-    "DISABLE_TELEMETRY": "1",
-    "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1"
-  }
-}
-```
+For users whose account was banned/suspended and need to log in with a different account without leaving traces that link the two.
 
-This additionally disables: GrowthBook feature flag fetching, auto-update checks, release notes, and other non-essential network traffic. Tradeoff: some new features controlled by remote flags won't activate.
+Tell the user to **exit Claude Code completely** before starting.
 
-## Scenario 2: Account Switch After Ban
+### Step 1 — Delete OAuth credentials
 
-**When:** User's account was banned/suspended and they need to switch to a new account cleanly.
-
-**IMPORTANT:** Exit Claude Code completely before running these steps.
-
-### Steps
-
-**Step 1 — Delete OAuth credentials from macOS Keychain:**
-
+**macOS:**
 ```bash
 security delete-generic-password -a $USER -s "Claude Code-credentials" 2>/dev/null
 ```
 
-On Linux, delete the plaintext fallback instead:
+**Linux:**
 ```bash
 rm -f ~/.claude/.credentials.json
 ```
 
-**Step 2 — Reset device ID and clear account caches:**
+### Step 2 — Reset device ID and clear caches
 
 ```bash
 python3 -c "
@@ -95,39 +92,32 @@ import json, os, secrets
 config_path = os.path.expanduser('~/.claude.json')
 with open(config_path, 'r') as f:
     d = json.load(f)
-
-# Generate new device ID
 d['userID'] = secrets.token_hex(32)
-
-# Clear old account identity
 for key in ['anonymousId', 'oauthAccount', 'cachedGrowthBookFeatures',
             'cachedStatsigGates', 'cachedDynamicConfigs', 'groveConfigCache',
             'metricsStatusCache', 'feedbackSurveyState', 'passesEligibilityCache',
             's1mAccessCache', 'cachedExtraUsageDisabledReason', 'clientDataCache']:
     d.pop(key, None)
-
 with open(config_path, 'w') as f:
     json.dump(d, f, indent=2)
-
 print(f'New device ID: {d[\"userID\"][:16]}...')
 "
 ```
 
-**Step 3 — Clear telemetry queue (failed events waiting to retry):**
+### Step 3 — Clear pending telemetry
 
 ```bash
 rm -rf ~/.claude/telemetry/
 ```
 
-**Step 4 — Launch Claude Code and log in with the new account:**
+These are failed telemetry events queued for retry. If not deleted, they'll be sent on next launch — potentially carrying the old account's identity.
 
-```bash
-claude /login
-```
+### Step 4 — Log in
+
+Tell the user to launch Claude Code and run `/login` with the new account.
 
 ### Verification
 
-After login, verify the switch was clean:
 ```bash
 python3 -c "
 import json, os
@@ -138,50 +128,48 @@ print(f'Account: {acct.get(\"emailAddress\", \"not logged in\")}')
 "
 ```
 
-The device ID should be different from before, and the account should show the new email.
+Device ID should differ from before. Account should show the new email.
 
 ## Scenario 3: Privacy Audit
 
-**When:** User wants to see what data Claude Code has stored locally.
+Show the user what Claude Code has stored locally about them.
 
-### Steps
+Run these checks and present the results:
 
-1. Show device ID:
 ```bash
+# 1. Device ID
 python3 -c "import json,os; d=json.load(open(os.path.expanduser('~/.claude.json'))); print(f'Device ID: {d.get(\"userID\",\"N/A\")}')"
-```
 
-2. Show account info:
-```bash
+# 2. Account info
 python3 -c "import json,os; d=json.load(open(os.path.expanduser('~/.claude.json'))); a=d.get('oauthAccount',{}); print(f'Email: {a.get(\"emailAddress\",\"N/A\")}'); print(f'Account UUID: {a.get(\"accountUuid\",\"N/A\")}'); print(f'Org UUID: {a.get(\"organizationUuid\",\"N/A\")}')"
-```
 
-3. Check if telemetry is disabled:
-```bash
-python3 -c "import json,os; d=json.load(open(os.path.expanduser('~/.claude/settings.json'))); env=d.get('env',{}); t=env.get('DISABLE_TELEMETRY','0'); n=env.get('CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC','0'); print(f'Telemetry disabled: {\"YES\" if t==\"1\" else \"NO\"}'); print(f'Non-essential traffic disabled: {\"YES\" if n==\"1\" else \"NO\"}')"
-```
+# 3. Telemetry status
+python3 -c "
+import json,os
+try:
+    d=json.load(open(os.path.expanduser('~/.claude/settings.json')))
+except: d={}
+env=d.get('env',{})
+t=env.get('DISABLE_TELEMETRY','0')
+n=env.get('CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC','0')
+print(f'Telemetry disabled: {\"YES\" if t==\"1\" else \"NO\"}')
+print(f'Non-essential traffic disabled: {\"YES\" if n==\"1\" else \"NO\"}')
+"
 
-4. Check for pending telemetry files:
-```bash
-ls -la ~/.claude/telemetry/ 2>/dev/null && echo "WARNING: Pending telemetry files found" || echo "No pending telemetry"
-```
+# 4. Pending telemetry files
+ls -la ~/.claude/telemetry/ 2>/dev/null && echo "WARNING: Pending telemetry files found — run 'rm -rf ~/.claude/telemetry/' to clear" || echo "No pending telemetry"
 
-5. Check keychain (macOS):
-```bash
+# 5. Keychain credentials (macOS only)
 security find-generic-password -a $USER -s "Claude Code-credentials" 2>/dev/null && echo "OAuth credentials found in Keychain" || echo "No Keychain credentials"
 ```
 
-## Key Facts
+Summarize findings in plain language. If telemetry is still on, recommend Scenario 1.
 
-- **Device ID** is NOT hardware-based. It's a random hex string in `~/.claude.json`. Delete it = new device.
-- **Bans are account-level**, not device-level. But sharing a device ID across accounts lets Anthropic link them.
-- **Telemetry** tracks: tool usage, errors, API calls, session duration, OS/platform info, memory/CPU usage. Disabling it stops all of this.
-- **OAuth tokens** live in macOS Keychain (service: `Claude Code-credentials`) or `~/.claude/.credentials.json` on Linux.
-- **Trusted device tokens** (90-day rolling) are also in the Keychain. They get cleared by `/logout`.
-- The `DISABLE_TELEMETRY` env var is an **officially supported** privacy control in Claude Code's source, not a hack.
+## Platform Reference
 
-## Platform Notes
-
-- **macOS**: Credentials are in Keychain. Use `security` commands.
-- **Linux**: Credentials are in `~/.claude/.credentials.json` (plaintext, chmod 600).
-- **Windows/WSL**: Follow Linux path for WSL, or check `%USERPROFILE%\.claude\` for native Windows.
+| Item | macOS | Linux | WSL |
+|------|-------|-------|-----|
+| Config | `~/.claude.json` | same | same |
+| Settings | `~/.claude/settings.json` | same | same |
+| Credentials | Keychain (`Claude Code-credentials`) | `~/.claude/.credentials.json` | same as Linux |
+| Telemetry cache | `~/.claude/telemetry/` | same | same |
