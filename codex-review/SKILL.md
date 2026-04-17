@@ -136,6 +136,15 @@ When both sets of findings arrive, Claude processes them in three zones:
 - **Required**: Internal checks already run (lint / typecheck / key grep results), so Codex doesn't repeat them
 - Principle: The more specific the file list in the first prompt, the shorter the review runs. Put the detail in the first prompt — don't wait for Codex to ask.
 
+> **⚠️ Hard constraint — the path list is a locator, not a scope cap**:
+> The prompt must tell Codex explicitly — **the file list/line ranges are locators to help you find entry points quickly, NOT a scope lock restricting your review to only these paths**. Codex's review must be **as comprehensive as possible**:
+> - Follow call chains; inspect files outside the list if they are affected
+> - Check cross-file side effects, error paths, edge cases — don't constrain yourself to the listed paths
+> - If you find issues outside the list, report them. Do NOT skip findings with "not in the given scope" reasoning
+>
+> Include language like this in the prompt:
+> > "The file list above is a locator to save you from scanning the repo from scratch. It is NOT a scope lock. Your review must be comprehensive — follow call chains, inspect files outside the list if they are affected, and report any issues you find there. Do not limit findings to the listed paths."
+
 ---
 
 ### Prompt Construction
@@ -204,6 +213,16 @@ Every entry must include all three pieces: **what the finding is + where it land
   - Reason: <what portion was fixed, why the rest is deferred, next-step plan>
 
 (Reason is what Codex uses to judge whether the fix is on-target — not decoration. Without it, re-review either skips verification or spends time re-deriving the fix logic from code. Either way defeats the index.)
+
+> **⚠️ Hard constraint — Reason is Claude's self-report, not Codex's conclusion**:
+> The prompt must tell Codex explicitly — **the Reason field is Claude's own claim about the fix rationale (an unverified premise), NOT a fact you can cite as your conclusion**. Codex must:
+> - Independently read the code at `<path>:<line-range>` and judge on its own whether the fix addresses the root cause
+> - If agreeing with the Reason, produce **its own independent evidence from reading the code** (line number + code quote + reasoning for why this evidence supports the Reason). "Reason looks correct" or simply echoing Claude's wording is NOT acceptable.
+> - If disagreeing, state exactly what's wrong and provide counter-evidence
+> - ACCEPTED / PARTIALLY FIXED entries also require independent verification of whether the stated justification holds
+>
+> Include language like this in the prompt:
+> > "The Reason field is Claude's self-reported fix rationale — treat it as an unverified claim, not a conclusion. For each VERIFIED FIXED entry, read the code at the stated path:line and produce your OWN independent evidence (line number + code quote + reasoning) for why the fix does or doesn't address the root cause. Echoing Claude's Reason without independent evidence is not acceptable."
 
 ## Files Changed This Round
 - <path1>: <one-line summary of change>
