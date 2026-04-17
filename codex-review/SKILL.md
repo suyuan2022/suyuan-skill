@@ -191,11 +191,19 @@ Re-review's bottleneck isn't "finding the entry point" — it's *verification*. 
 ```
 Fixed the previous round's findings. Fix evidence index below:
 
-## Finding → Fix Mapping (file:line granularity)
-- [Finding-1 title] → <path>:<line-range>  [VERIFIED FIXED]
-- [Finding-2 title] → <path>:<line-range>  [VERIFIED FIXED]
-- [Finding-3 title] → [ACCEPTED — not fixing, reason: ...]
-- [Finding-4 title] → <path>:<lines>  [PARTIALLY FIXED — remaining: ...]
+## Finding → Fix Mapping (finding → file:line → reason, all three required)
+Every entry must include all three pieces: **what the finding is + where it landed (file:line) + why this fix**. A bare `file:line` without a reason forces Codex to reconstruct the "root cause → fix" logic chain on its own — defeating the purpose of the index.
+
+- **[Finding-1 title]** → `<path>:<line-range>` [VERIFIED FIXED]
+  - Reason: <what was done + why this approach; one line connecting root cause → fix>
+- **[Finding-2 title]** → `<path>:<line-range>` [VERIFIED FIXED]
+  - Reason: <...>
+- **[Finding-3 title]** → [ACCEPTED — not fixing]
+  - Reason: <why not fixing: risk/cost/unnecessary, or decided in earlier round>
+- **[Finding-4 title]** → `<path>:<lines>` [PARTIALLY FIXED]
+  - Reason: <what portion was fixed, why the rest is deferred, next-step plan>
+
+(Reason is what Codex uses to judge whether the fix is on-target — not decoration. Without it, re-review either skips verification or spends time re-deriving the fix logic from code. Either way defeats the index.)
 
 ## Files Changed This Round
 - <path1>: <one-line summary of change>
