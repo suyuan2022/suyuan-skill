@@ -128,6 +128,14 @@ When both sets of findings arrive, Claude processes them in three zones:
 
 **Use `--skip-git-repo-check`** when the target directory isn't a git repo.
 
+**Maximize initial review input** — On the first call, give Codex the full review scope up front. Locating code is the most expensive phase of the first review; specific paths and ranges skip it entirely:
+
+- **Required**: Complete file path list (not vague like "the marketing-related files")
+- **Required**: Line ranges of interest (`path:line-range`) or precise diff range (`<base>..<head>` commit range / direct patch)
+- **Required**: Hard boundaries — which files/modules are context vs. review targets
+- **Required**: Internal checks already run (lint / typecheck / key grep results), so Codex doesn't repeat them
+- Principle: The more specific the file list in the first prompt, the shorter the review runs. Put the detail in the first prompt — don't wait for Codex to ask.
+
 ---
 
 ### Prompt Construction
@@ -174,17 +182,43 @@ All prompts sent to Codex use XML blocks, each with a fixed responsibility:
 5. Both pass + adequate review scope → cycle ends
 6. **Max 3 rounds**. Beyond 3 → stop and report to user
 
-**Re-review prompt** (new session, include diff):
-```
-Fixed the previous round's findings. Changes made:
-- [Issue 1]: [what was done]
-- [Issue 2]: [rejected, reason: ...]
+**Re-review prompt** (resume session, or new session with diff):
 
-Updated diff:
-[diff]
+Re-review's bottleneck isn't "finding the entry point" — it's *verification*. Codex has to confirm every fix actually landed and check for second-order problems. A natural-language summary ("fixed the AuthModal logic") forces Codex to locate code on its own, wasting its most expensive time.
 
-Please re-review. Confirm fixes are correct and check for new issues.
+**You must provide a "Fix Evidence Index"** structured at `file:line` granularity:
+
 ```
+Fixed the previous round's findings. Fix evidence index below:
+
+## Finding → Fix Mapping (file:line granularity)
+- [Finding-1 title] → <path>:<line-range>  [VERIFIED FIXED]
+- [Finding-2 title] → <path>:<line-range>  [VERIFIED FIXED]
+- [Finding-3 title] → [ACCEPTED — not fixing, reason: ...]
+- [Finding-4 title] → <path>:<lines>  [PARTIALLY FIXED — remaining: ...]
+
+## Files Changed This Round
+- <path1>: <one-line summary of change>
+- <path2>: <one-line summary of change>
+(List only files actually touched this round. No vague summaries like "mainly updated marketing files".)
+
+## Diff Range
+Commit range: <base>..<head>  or  patch below
+[Optional: inline diff]
+
+## Verifications Already Run This Round
+- `<command>`: <key result>
+- `<command>`: <key result>
+(e.g., `tsc --noEmit`: no errors; `rg "@gsap/react"`: 0 matches)
+
+Please re-review based on this index:
+1. For each [VERIFIED FIXED], confirm it actually landed (read the corresponding file:line)
+2. Check for second-order issues (did changing A affect B?)
+3. Evaluate whether ACCEPTED decisions are reasonable
+4. Assess whether PARTIALLY FIXED remainders are critical
+```
+
+**Why this format**: Real Codex feedback shows ~70-80% of re-review time is spent on "locating and cross-referencing code", only 20-30% on actual thinking. A structured index front-loads the verification paths into the prompt so Codex can jump straight to `file:line` without translating natural-language descriptions into search targets.
 
 ---
 
