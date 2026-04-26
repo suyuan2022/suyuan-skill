@@ -2,14 +2,12 @@
   <strong>中文</strong> | <a href="./README_EN.md">English</a>
 </p>
 
-<p align="center">
-  <img src="https://img.shields.io/badge/Claude_Code-Skills-8B5CF6?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJ3aGl0ZSI+PHBhdGggZD0iTTEyIDJMMyA3djEwbDkgNSA5LTVWN2wtOS01em0wIDIuMThsNi44MyAzLjhMMTIgMTEuOCA1LjE3IDcuOTggMTIgNC4xOHpNNSA5LjA2bDYgMy4zNHY2LjUzTDUgMTUuNnYtNi41M3ptMTQgNi41M2wtNiAzLjM0di02LjUzbDYtMy4zNHY2LjUzeiIvPjwvc3ZnPg==&logoColor=white" alt="Claude Code Skills">
-</p>
-
-<h1 align="center">Suyuan's Skill Collection</h1>
+<h1 align="center">让 AI 干活像个真干过的人</h1>
 
 <p align="center">
-  我在用 Claude Code 干活过程中积累的 Skill，开源出来给需要的人。
+  一组 Claude Code / Codex 的 Skill，解决同一个问题：<br>
+  <strong>AI 的默认输出是统计平均值——正确但平庸、完整但空洞。</strong><br>
+  这些 Skill 把它拉回到有判断力的人的水平。
 </p>
 
 <p align="center">
@@ -20,35 +18,34 @@
 
 ---
 
-## Skill 列表
+## 这些 Skill 各自在打什么
 
-### 本仓库
-
-| Skill | 说明 | 类型 |
-|-------|------|------|
-| [**break-ai-slop**](./break-ai-slop/) | 反 AI 泔水。执行前强制提取行家默会知识，把"统计平均"输出拉回"真正干过这事的人"的水平。 | 纯 Markdown |
-| [**task-triage**](./task-triage/) | 任务分诊。5+1 维度打分，帮你快速判断一件事值不值得做、该不该你做。 | 纯 Markdown |
-| [**cc-shield**](./cc-shield/) | Claude Code 账号保护。关闭遥测、清理设备指纹、安全换号。 | 纯 Markdown |
-| [**codex-review**](./codex-review/) | 双模型代码审查。两个 GPT 模型独立审查同一份代码，Claude 仲裁分歧。支持 review / fix / audit / autopilot 四种模式。 | Markdown + Codex CLI |
+| Skill | 对手 | 它做什么 |
+|-------|------|---------|
+| [**break-ai-slop**](./break-ai-slop/) | AI 泔水（正确但平庸的输出） | 执行前强制提取行家默会知识，4 步认知校准，把输出从"AI 味"拉到"真干过这事的人"的水平 |
+| [**codex-review**](./codex-review/) | 单模型审查的盲区 | 两个 GPT 模型独立审查同一份代码，Claude 仲裁分歧。review / fix / audit / autopilot 四种模式 |
+| [**task-triage**](./task-triage/) | 什么都想做的注意力陷阱 | 5+1 维度打分，帮你判断一件事值不值得做、该不该你做 |
+| [**cc-shield**](./cc-shield/) | Claude Code 的隐私泄露 | 关闭遥测、清理设备指纹、安全换号 |
 
 ### 独立仓库
 
-| Skill | 说明 | 仓库 |
+| Skill | 对手 | 仓库 |
 |-------|------|------|
-| **GET-biji** | 自动同步 [Get Notes](https://biji.com)（24/7 录音卡）语音笔记到本地 Markdown 知识库。 | [suyuan2022/GET-biji](https://github.com/suyuan2022/GET-biji) |
+| **GET-biji** | 语音笔记躺在 App 里吃灰 | [suyuan2022/GET-biji](https://github.com/suyuan2022/GET-biji) |
 
 ---
 
 ## 安装
 
 ```bash
+# 克隆仓库
 git clone https://github.com/suyuan2022/suyuan-skill.git
 
 # 把想用的 skill 复制到 Claude Code skills 目录
-cp -r suyuan-skill/task-triage ~/.claude/skills/task-triage
+cp -r suyuan-skill/break-ai-slop ~/.claude/skills/break-ai-slop
 ```
 
-纯 Markdown 类型的 skill，只需要复制 `SKILL.md` 就够了。
+每个 Skill 都是独立的 `SKILL.md`，纯 Markdown，复制就能用。
 
 ---
 
@@ -56,10 +53,9 @@ cp -r suyuan-skill/task-triage ~/.claude/skills/task-triage
 
 欢迎 PR。要求：
 
-- 一个 skill 一个目录
-- 包含带 frontmatter 的 `SKILL.md`
+- 一个 skill 一个目录，包含带 frontmatter 的 `SKILL.md`
 - 不要硬编码个人路径或凭证
-- PR 里简单说明它解决什么问题
+- PR 里说清楚它的**对手**是什么（它在跟什么问题打）
 
 ---
 
@@ -70,5 +66,5 @@ MIT
 ---
 
 <p align="center">
-  <sub>Built by <a href="https://github.com/suyuan2022">Suyuan</a></sub>
+  <sub>Built by <a href="https://github.com/suyuan2022">Suyuan</a> — 用 AI 干活的人，不是被 AI 干活的人</sub>
 </p>
