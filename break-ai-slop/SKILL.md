@@ -76,19 +76,3 @@ Format: **"The core constraint is: [one sentence]."**
 4. **If you can't identify a deep failure in Step 3, say so honestly.** "I don't see a deep failure here" is better than fabricating one.
 5. **Re-calibrate if the task pivots.** If the user changes direction mid-task, re-run the protocol for the new direction.
 
----
-
-## Why This Works
-
-AI slop happens because LLMs default to **statistical averages** — the most common pattern in training data. This produces output that is:
-- Technically correct but generically useless
-- Comprehensive but without judgment
-- Well-structured but missing the one thing that matters
-
-The 4-step protocol forces the AI off the statistical average by:
-1. **Anchoring to a specific expert** (not a generic role)
-2. **Making failure concrete** (not abstract)
-3. **Hunting structural errors** (not surface errors)
-4. **Compressing to one constraint** (not a checklist)
-
-The result: output that reads like it came from someone who's done this before, not someone who read about it.
