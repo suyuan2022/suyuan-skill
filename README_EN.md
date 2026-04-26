@@ -18,19 +18,19 @@
 
 ---
 
-## What Each Skill Fights
+## Skills
 
-| Skill | The Enemy | What It Does |
-|-------|-----------|-------------|
-| [**break-ai-slop**](./break-ai-slop/) | AI slop (correct but generic output) | Forces expert tacit knowledge extraction before execution. 4-step cognitive calibration that turns "AI-flavored" output into "someone who's done this before" output |
-| [**codex-review**](./codex-review/) | Single-model review blind spots | Two GPT models review the same code independently, Claude arbitrates. Supports review / fix / audit / autopilot modes |
-| [**task-triage**](./task-triage/) | The "do everything" attention trap | 5+1 dimension scoring to decide if a task is worth doing and whether YOU should do it |
-| [**cc-shield**](./cc-shield/) | Claude Code privacy leaks | Disable telemetry, clean device fingerprints, safe account switching |
+| Skill | What It Solves | What It Does |
+|-------|---------------|-------------|
+| [**break-ai-slop**](./break-ai-slop/) | AI output is correct but mediocre | Forces expert tacit knowledge extraction before execution. 4-step cognitive calibration that turns "AI-flavored" output into "someone who's done this before" output |
+| [**codex-review**](./codex-review/) | Single-model review has blind spots | Two GPT models review the same code independently, Claude arbitrates. Supports review / fix / audit / autopilot modes |
+| [**task-triage**](./task-triage/) | Trying to do everything, attention scattered | 5+1 dimension scoring to decide if a task is worth doing and whether YOU should do it |
+| [**cc-shield**](./cc-shield/) | Claude Code privacy leak risks | Disable telemetry, clean device fingerprints, safe account switching |
 
 ### Standalone Repos
 
-| Skill | The Enemy | Repo |
-|-------|-----------|------|
+| Skill | What It Solves | Repo |
+|-------|---------------|------|
 | **GET-biji** | Voice notes rotting inside an app | [suyuan2022/GET-biji](https://github.com/suyuan2022/GET-biji) |
 
 ---
@@ -55,7 +55,7 @@ PRs welcome.
 
 - One skill per directory with a frontmatter `SKILL.md`
 - No hardcoded personal paths or credentials
-- Describe what your skill's **enemy** is (what problem it fights)
+- Describe **what problem** your skill solves
 
 ---
 
