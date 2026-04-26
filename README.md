@@ -26,6 +26,7 @@
 
 | Skill | 说明 | 类型 |
 |-------|------|------|
+| [**break-ai-slop**](./break-ai-slop/) | 反 AI 泔水。执行前强制提取行家默会知识，把"统计平均"输出拉回"真正干过这事的人"的水平。 | 纯 Markdown |
 | [**task-triage**](./task-triage/) | 任务分诊。5+1 维度打分，帮你快速判断一件事值不值得做、该不该你做。 | 纯 Markdown |
 | [**cc-shield**](./cc-shield/) | Claude Code 账号保护。关闭遥测、清理设备指纹、安全换号。 | 纯 Markdown |
 | [**codex-review**](./codex-review/) | 双模型代码审查。两个 GPT 模型独立审查同一份代码，Claude 仲裁分歧。支持 review / fix / audit / autopilot 四种模式。 | Markdown + Codex CLI |
