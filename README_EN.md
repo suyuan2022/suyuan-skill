@@ -12,7 +12,6 @@ A skill is a manual written for your agent: once it's installed, the agent follo
 |---|---|
 | can't get your head around a concept, or your agent dumps screens of text you can't take in | [whatis](#whatis) |
 | get AI output you can't fault, yet can't use either | [break-ai-slop](#break-ai-slop) |
-| have too much on your plate and can't tell whether to take something on, or do it yourself | [task-triage](#task-triage) |
 | want your Get Notes recordings and notes copied over to your own computer | [get-biji](#get-biji) |
 | want a video, podcast, or recording on your phone turned into text | [get-biji](#get-biji) |
 
@@ -76,21 +75,6 @@ Only then does it get to work. I asked it to write an opening-day WeChat Moments
 How to call it: add "don't phone this in, think it through first" before your task, or type `/break-ai-slop`.
 
 It's for work with no single right answer: writing, plans, judgment calls. For looking up a fact or fixing a typo, skip it; its output runs about twice as long.
-
-<a id="task-triage"></a>
-### task-triage: should you take this on, and should it be you?
-
-With too much going on, the easy thing is to say yes to whatever comes next. Describe a task to task-triage and it scores it on five things, 0 to 3 each:
-
-- Does it strengthen your position on the team?
-- Does it have to be you?
-- Will doing it once keep paying off?
-- What happens if you don't do it?
-- Will the right people see the result?
-
-Then it looks at the tail cost: will this keep pulling at you after it's done? That's up to 3 points off. You get a total, a one-line reason, and a suggestion: 12 or more, do it yourself; 9 to 11, worth doing, but think about what to hand off; 6 to 8, hand it to someone else or to AI; 5 or under, seriously consider not doing it.
-
-How to call it: "Help me decide whether this is worth doing: …"
 
 <a id="get-biji"></a>
 ### get-biji: move your Get Notes onto your computer, and use its minutes for transcripts
