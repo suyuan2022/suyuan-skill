@@ -1,4 +1,0 @@
-interface:
-  display_name: "Claude Cleanup Audit"
-  short_description: "Audit local Claude cleanup and macOS identity settings"
-  default_prompt: "Use $claude-cleanup-audit to audit my Claude local cleanup checklist before changing anything."
