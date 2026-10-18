@@ -13,7 +13,8 @@ Skill 就是一份写给 agent 的说明书：装上以后，你说到相关的�
 | 看不懂一个概念，或者 agent 甩过来一屏又一屏的字读不进去 | [whatis](#whatis) |
 | AI 交出来的东西挑不出错，可也没什么用 | [break-ai-slop](#break-ai-slop) |
 | 手上事太多，拿不准这件该不该接、该不该自己干 | [task-triage](#task-triage) |
-| 录音卡录了一天，想把转写存到本地随时搜 | [get-biji](#get-biji) |
+| 想把 Get 笔记里的录音和笔记整个搬到自己电脑上 | [get-biji](#get-biji) |
+| 想把一个视频、播客或者手机里的录音转成文字 | [get-biji](#get-biji) |
 | 代码写完，想让另一家模型挑一遍刺 | [codex-review](#codex-review) |
 
 ## 安装
@@ -93,13 +94,17 @@ AI 交出来的东西，常常挑不出错，可换谁来写都差不多。break
 怎么叫它：「帮我判断一下这件事值不值得做：……」
 
 <a id="get-biji"></a>
-### get-biji：录音卡的转写，存到本地随时搜
+### get-biji：把 Get 笔记搬到你电脑上，再用它的额度转逐字稿
 
-Get 笔记（[biji.com](https://biji.com)）的录音卡录了一整天，转写都躺在 App 里，想找某人说过的一句话很难。get-biji 把转写同步成你电脑上的 Markdown 文件，按日期放好，agent 直接就能搜。
+[Get 笔记](https://biji.com)用户的两件事。
 
-还附了一个脚本：把视频、播客链接或本地音视频交给 Get 转成逐字稿。转写要在 Get 里新建一条笔记，拿到原文后脚本只删这条，你别的笔记不碰。本地文件按音频时长扣 Get 每月的转写额度。
+**把 Get 笔记整个搬到你电脑上。** 录音、存过的链接、随手记的文字，全部同步成本地的 Markdown 文件，按日期放好；以后有新的，再跑一次就补上。录音的逐字稿带说话人和时间，长的单独存一个文件。变成你自己的文件以后，agent 能跟你别的笔记一起搜，Get 改版或者断网，东西也还在你手里。
 
-需要 Node.js。第一次运行会弹出浏览器登录 biji.com，之后大约 90 天不用再登。
+**用 Get 的转写额度转逐字稿。** 丢一个抖音、小红书、B 站、小宇宙的链接，Get 免费解析成文字；别的网站的视频、手机里的录音，上传给 Get 转，按音频时长扣你每月的转写额度，扣之前 agent 会先告诉你大概扣多少。转写要在 Get 里建一条临时笔记，拿到文字后只删这一条，你别的笔记不碰。
+
+只想在对话里存笔记、搜笔记，装 Get 官方的 [MCP](https://www.npmjs.com/package/@getnote/mcp) 就够了，它能按意思搜。get-biji 管的是官方不做的那两件：整个搬到本地，和上传音视频转写。
+
+装完要在 skill 目录里跑一次 `npm install && npx playwright install chromium`，跟 agent 说一声它会自己跑。第一次用会弹出浏览器登录 biji.com，之后大约 90 天不用再登。转本地音视频还要装 [ffmpeg](https://ffmpeg.org)。
 
 基于 [skychentian/GET-biji](https://github.com/skychentian/GET-biji) 改的，经作者同意收录：同步部分是原作者写的，逐字稿脚本是我加的。
 

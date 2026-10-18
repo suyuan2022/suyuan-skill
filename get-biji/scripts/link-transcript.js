@@ -17,8 +17,8 @@
  *
  * 各平台实测（2026-10）：
  *   抖音      按提示词出纠错稿
- *   小红书    多数能转，原文 = 笔记文案 + 话题行 + 语音；个别视频只回文案
- *   B 站      能转（认 ?p=N 分 P），AI 固定出「智能总结」，提示词和 prompt_template_id 都改不了
+ *   小红书    多数能转，原文 = 笔记文案 + 话题行 + 语音；个别视频只回文案；失效链接回登录页
+ *   B 站      能转（认 ?p=N 分 P）；早先只出「智能总结」，2026-10-18 实测已按提示词出纠错稿
  *   小宇宙    能转（1 小时 43 分的播客约 2 分钟），同样只出智能总结
  *   YouTube   会抓到错误语言的字幕轨，别用；微博等其他站只回网页文字，不转语音
  *   --file    任何音视频都能转，原文带逐句时间戳和说话人，AI 同样只出智能总结
@@ -212,6 +212,12 @@ function stripImages(text) {
     return text.replace(/!\[[^\]]*\]\([^)]*\)\s*/g, '').trim();
 }
 
+// 小红书的原文是「笔记文案 + 话题行 + 语音识别」，最后一个「[话题]#」之后才是语音
+function xhsSpeech(raw) {
+    const i = raw.lastIndexOf('[话题]#');
+    return i >= 0 ? raw.slice(i + '[话题]#'.length).trim() : raw;
+}
+
 async function transcribe(input, { keep = false } = {}) {
     const url = await normalizeUrl(input);
     const { noteId, corrected, error } = await createLinkNote(url);
@@ -222,13 +228,23 @@ async function transcribe(input, { keep = false } = {}) {
         const raw = stripImages(original.content || '');
         if (!raw && !corrected) throw new Error('Get 没有返回原文');
 
+        // 纠错稿只有语音，小红书要先切掉文案再比长度，否则会误判成删减
+        const isXhs = /xiaohongshu\.com|xhslink\.com/.test(url);
+        if (isXhs && /手机号登录|我已阅读并同意/.test(raw)) {
+            throw new Error('小红书返回的是登录页，链接可能失效了，换一个完整的笔记链接再试');
+        }
+        const speech = isXhs ? xhsSpeech(raw) : raw;
+        if (isXhs && speech.length < 30) {
+            throw new Error('Get 只抓到了小红书的笔记文案，没有转语音；可以下载视频后用 --file 上传转写');
+        }
+
         // B 站、小宇宙 Get 不理会提示词，回的是「智能总结」，长度也够，得单独挡掉
         const isSummary = /^\s*#+\s*\S*\s*智能总结/.test(corrected);
-        const useCorrected = corrected && !isSummary && corrected.length >= raw.length * MIN_CORRECTED_RATIO;
+        const useCorrected = corrected && !isSummary && corrected.length >= speech.length * MIN_CORRECTED_RATIO;
         return {
             title: original.title || '',
             url,
-            text: useCorrected ? corrected : raw,
+            text: useCorrected ? corrected : speech,
             source: useCorrected ? 'get-corrected' : 'get-raw',
             raw,
             corrected,

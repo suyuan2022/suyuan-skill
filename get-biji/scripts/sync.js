@@ -37,7 +37,7 @@ const {
 
 const OUTPUT_DIR = process.env.OUTPUT_DIR || path.join(process.cwd(), 'notes');
 const TEST_LIMIT = process.env.TEST_LIMIT ? parseInt(process.env.TEST_LIMIT) : 0; // 0 = sync all
-const SINCE_DATE = process.env.SINCE_DATE || '2026-01-01'; // Only sync notes from this date onwards
+const SINCE_DATE = process.env.SINCE_DATE || ''; // Only sync notes from this date onwards ('' = all)
 
 // ============================================================
 // Save a single note
@@ -129,7 +129,7 @@ async function main() {
         const dateStr = (n.created_at || '').split(' ')[0] || '';
         return dateStr >= SINCE_DATE;
     });
-    console.log(`📅 Notes from ${SINCE_DATE}: ${dateFiltered.length} (skipped ${allNotes.length - dateFiltered.length} older)`);
+    console.log(`📅 Notes from ${SINCE_DATE || 'the beginning'}: ${dateFiltered.length} (skipped ${allNotes.length - dateFiltered.length} older)`);
 
     // Filter new notes (not yet synced), skipping temporary notes made by link-transcript.js
     let transcriptIds = [];

@@ -13,7 +13,8 @@ A skill is a manual written for your agent: once it's installed, the agent follo
 | can't get your head around a concept, or your agent dumps screens of text you can't take in | [whatis](#whatis) |
 | get AI output you can't fault, yet can't use either | [break-ai-slop](#break-ai-slop) |
 | have too much on your plate and can't tell whether to take something on, or do it yourself | [task-triage](#task-triage) |
-| record all day on a voice recorder and want the transcripts searchable on your own machine | [get-biji](#get-biji) |
+| want your Get Notes recordings and notes copied over to your own computer | [get-biji](#get-biji) |
+| want a video, podcast, or recording on your phone turned into text | [get-biji](#get-biji) |
 | finish some code and want a different model to pick it apart | [codex-review](#codex-review) |
 
 ## Install
@@ -93,13 +94,17 @@ Then it looks at the tail cost: will this keep pulling at you after it's done? T
 How to call it: "Help me decide whether this is worth doing: …"
 
 <a id="get-biji"></a>
-### get-biji: voice-recorder transcripts, searchable on your machine
+### get-biji: move your Get Notes onto your computer, and use its minutes for transcripts
 
-You record all day with a Get Notes ([biji.com](https://biji.com)) voice recorder, the transcripts sit inside the app, and finding one thing someone said is hard. get-biji syncs the transcripts to Markdown files on your computer, organised by date, so your agent can search them directly.
+Two things for [Get Notes](https://biji.com) users.
 
-It also comes with a script that sends a video link, podcast link, or local audio/video file to Get and returns the full transcript. Transcribing means creating a note in Get; once the script has the text, it deletes that one note and leaves your other notes alone. Local files count against Get's monthly transcription minutes, based on audio length.
+**Move all of Get Notes onto your computer.** Recordings, saved links, quick text notes: everything syncs to Markdown files on your machine, organised by date; when there's something new, run it again and it fills in the rest. Recording transcripts keep speakers and timestamps, and long ones get a file of their own. Once they're your own files, your agent can search them alongside your other notes, and they stay yours even if Get changes or you're offline.
 
-Requires Node.js. The first run opens a browser to log in to biji.com; after that you won't need to log in again for about 90 days.
+**Use Get's transcription minutes for transcripts.** Drop in a Douyin, Xiaohongshu, Bilibili, or Xiaoyuzhou link and Get turns it into text for free; videos from other sites, or recordings on your phone, get uploaded for Get to transcribe, which counts against your monthly minutes by audio length. Your agent tells you roughly how many minutes it'll use first. Transcribing means creating a temporary note in Get; once the text is back, only that note is deleted and your other notes are left alone.
+
+If you just want to save and search notes from a chat, Get's official [MCP](https://www.npmjs.com/package/@getnote/mcp) is enough, and it can search by meaning. get-biji covers the two things the official tools don't: moving everything onto your computer, and transcribing uploaded audio and video.
+
+After installing, run `npm install && npx playwright install chromium` once in the skill folder, or just ask your agent to. The first run opens a browser to log in to biji.com; after that you won't need to log in again for about 90 days. Transcribing local audio and video also needs [ffmpeg](https://ffmpeg.org).
 
 Built on [skychentian/GET-biji](https://github.com/skychentian/GET-biji) and included with the author's permission: the sync part is theirs, the transcript script is mine.
 
