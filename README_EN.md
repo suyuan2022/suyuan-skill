@@ -2,71 +2,122 @@
   <a href="./README.md">中文</a> | <strong>English</strong>
 </p>
 
-<h1 align="center">Make AI Work Like Someone Who's Actually Done It</h1>
+# suyuan-skill
 
-<p align="center">
-  A set of Skills for Claude Code / Codex that solve one problem:<br>
-  <strong>AI defaults to statistical averages — correct but mediocre, comprehensive but hollow.</strong><br>
-  These Skills pull it back to the level of someone with real judgment.
-</p>
+I'm Suyuan (X: [@suyuan1711](https://x.com/suyuan1711)), and by day I build agent products at an AI startup. These are the AI skills I use in my own work. Each one started with a specific problem I kept running into. They install in both Claude Code and Codex.
 
-<p align="center">
-  <a href="https://github.com/suyuan2022/suyuan-skill/stargazers"><img src="https://img.shields.io/github/stars/suyuan2022/suyuan-skill?style=flat-square&color=yellow" alt="Stars"></a>
-  <a href="https://github.com/suyuan2022/suyuan-skill/network/members"><img src="https://img.shields.io/github/forks/suyuan2022/suyuan-skill?style=flat-square" alt="Forks"></a>
-  <a href="https://github.com/suyuan2022/suyuan-skill/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-green?style=flat-square" alt="License"></a>
-</p>
+A skill is a manual written for your agent: once it's installed, the agent follows it whenever you bring up something it covers.
 
----
+| When you… | Use |
+|---|---|
+| can't get your head around a concept, or your agent dumps screens of text you can't take in | [whatis](#whatis) |
+| get AI output you can't fault, yet can't use either | [break-ai-slop](#break-ai-slop) |
+| have too much on your plate and can't tell whether to take something on, or do it yourself | [task-triage](#task-triage) |
+| record all day on a voice recorder and want the transcripts searchable on your own machine | [get-biji](#get-biji) |
+| finish some code and want a different model to pick it apart | [codex-review](#codex-review) |
 
-## Skills
+## Install
 
-| Skill | What It Solves | What It Does |
-|-------|---------------|-------------|
-| [**break-ai-slop**](./break-ai-slop/) | AI output is correct but mediocre | Forces expert tacit knowledge extraction before execution. 4-step cognitive calibration that turns "AI-flavored" output into "someone who's done this before" output |
-| [**codex-review**](./codex-review/) | Single-model review has blind spots | Two GPT models review the same code independently, Claude arbitrates. Supports review / fix / audit / autopilot modes |
-| [**task-triage**](./task-triage/) | Trying to do everything, attention scattered | 5+1 dimension scoring to decide if a task is worth doing and whether YOU should do it |
-| [**whatis**](./whatis/) | Reading paragraphs still leaves you without a mental picture | What Is This — explains any topic as a picture-first HTML page. Real SVG diagrams (flowchart, sequence, architecture, timeline...), and it goes gathering context itself when the current one is not enough |
-| [**claude-cleanup**](./claude-cleanup/) | Claude cleanup can erase sessions or configuration | Back up first, then confirm Desktop cleanup, local ID reset, telemetry inheritance, and prompt slimming |
-| [**claude-cleanup-audit**](./claude-cleanup-audit/) | Claude local cleanup is easy to miss | Audits Claude Code / Desktop, Mac identity, timezone, and settings with confirmation before changes |
+Install [Node.js](https://nodejs.org) first; the `npx` command below comes with it.
 
-### Standalone Repos
-
-| Skill | What It Solves | Repo |
-|-------|---------------|------|
-| **GET-biji** | Voice notes rotting inside an app | [suyuan2022/GET-biji](https://github.com/suyuan2022/GET-biji) |
-
----
-
-## Installation
+Everything (you'll get to pick which ones):
 
 ```bash
-# Clone the repo
-git clone https://github.com/suyuan2022/suyuan-skill.git
-
-# Copy the skill you want into your Claude Code skills directory
-cp -r suyuan-skill/break-ai-slop ~/.claude/skills/break-ai-slop
+npx skills add suyuan2022/suyuan-skill -g
 ```
 
-Each Skill is a standalone `SKILL.md` — pure Markdown, just copy and go.
+Just one, e.g. whatis:
+
+```bash
+npx skills add suyuan2022/suyuan-skill -g --skill whatis
+```
+
+`-g` installs to your user directory so every project can use it; without it, the skill goes into the current project only.
+
+Or send this line to your agent and let it install the skill itself:
+
+> Install this skill for me: https://github.com/suyuan2022/suyuan-skill/tree/main/whatis
+
+Skip the ones you won't use. Your agent reads the description of every installed skill each time it starts, so extra skills just take up its attention.
 
 ---
 
-## Contributing
+<a id="whatis"></a>
+### whatis: turn what you don't understand into pictures
 
-PRs welcome.
+When you hit an unfamiliar concept, or your agent spits out a wall of text you can't take in, call whatis. It builds an HTML page that's mostly big diagrams with very little text: flowcharts, sequence diagrams, architecture diagrams, before/after comparisons, whichever fits. If it doesn't have enough context, it goes through your files or searches the web first. Every box in a diagram has to be backed by something; nothing is made up.
 
-- One skill per directory with a frontmatter `SKILL.md`
-- No hardcoded personal paths or credentials
-- Describe **what problem** your skill solves
+```
+/whatis why rate hikes make mortgages more expensive
+```
+
+<a href="./assets/whatis-demo.jpg"><img src="./assets/whatis-demo.jpg" alt="Three whatis pages: Claude Code's stale LSP snapshot problem, worktree build artifacts, and git rebase vs. merge"></a>
+
+<sub>Three real outputs (click for full size): Claude Code's stale LSP snapshot problem, worktree build artifacts, and git rebase vs. merge.</sub>
+
+Adapted from ELI5 (Explain Like I'm Five), shared by [@trq212](https://x.com/trq212) at Anthropic. The original is one line: "explain like I'm someone who knows nothing about this topic, using a HTML artifact with big pictures and few words". I added layout and information-hierarchy rules on top so the results come out more consistently.
+
+<a id="break-ai-slop"></a>
+### break-ai-slop: before doing anything, work out how a real pro would do it
+
+AI output is often hard to fault, yet anyone could have written it. break-ai-slop makes the AI answer four questions before it starts:
+
+1. In the real world, who does this best, and in what setting?
+2. When a beginner or an AI gets it wrong, what does the result look like?
+3. If every common mistake is avoided and it's still wrong, what's the root cause?
+4. So what's the one constraint that actually decides success?
+
+Only then does it get to work. I asked it to write an opening-day WeChat Moments post for a 20 m² bakery at the gate of an old residential compound in Hangzhou. Here's what it worked out before writing (translated from its Chinese output):
+
+> Not "a copywriting expert", but someone who has run a small shop at a compound gate for a few years and won their first regulars through their own Moments posts.
+>
+> …Even with good writing, it can still fail, because the goal is wrong. This post isn't after likes; it needs people within a kilometre to actually walk in and buy something next Saturday, and then make it a habit. There's also a hidden constraint: a 20 m² shop can't hold many people, so the post should spread visits out.
+
+How to call it: add "don't phone this in, think it through first" before your task, or type `/break-ai-slop`.
+
+It's for work with no single right answer: writing, plans, judgment calls. For looking up a fact or fixing a typo, skip it; its output runs about twice as long.
+
+<a id="task-triage"></a>
+### task-triage: should you take this on, and should it be you?
+
+With too much going on, the easy thing is to say yes to whatever comes next. Describe a task to task-triage and it scores it on five things, 0 to 3 each:
+
+- Does it strengthen your position on the team?
+- Does it have to be you?
+- Will doing it once keep paying off?
+- What happens if you don't do it?
+- Will the right people see the result?
+
+Then it looks at the tail cost: will this keep pulling at you after it's done? That's up to 3 points off. You get a total, a one-line reason, and a suggestion: 12 or more, do it yourself; 9 to 11, worth doing, but think about what to hand off; 6 to 8, hand it to someone else or to AI; 5 or under, seriously consider not doing it.
+
+How to call it: "Help me decide whether this is worth doing: …"
+
+<a id="get-biji"></a>
+### get-biji: voice-recorder transcripts, searchable on your machine
+
+You record all day with a Get Notes ([biji.com](https://biji.com)) voice recorder, the transcripts sit inside the app, and finding one thing someone said is hard. get-biji syncs the transcripts to Markdown files on your computer, organised by date, so your agent can search them directly.
+
+It also comes with a script that sends a video link, podcast link, or local audio/video file to Get and returns the full transcript. Transcribing means creating a note in Get; once the script has the text, it deletes that one note and leaves your other notes alone. Local files count against Get's monthly transcription minutes, based on audio length.
+
+Requires Node.js. The first run opens a browser to log in to biji.com; after that you won't need to log in again for about 90 days.
+
+Built on [skychentian/GET-biji](https://github.com/skychentian/GET-biji) and included with the author's permission: the sync part is theirs, the transcript script is mine.
+
+<a id="codex-review"></a>
+### codex-review: have a different model pick your code apart
+
+If the same model writes and reviews the code, it has the same blind spots both times. codex-review has Claude call OpenAI's Codex and run two GPT models on the same code, each reviewing on its own without seeing the other's findings. Claude then compares both sides and settles the disagreements.
+
+By default it only reviews and changes nothing. You can also have it fix things directly, run a full security check, or finish on its own while you're away.
+
+You need an OpenAI account with Codex access. Install the Codex CLI and log in first: `npm install -g @openai/codex`, then `codex login`.
+
+How to call it: "Have Codex look at this code", "review this".
 
 ---
+
+The mistakes I've made working with AI, and why these skills are written the way they are, are on X: [@suyuan1711](https://x.com/suyuan1711). If something doesn't work well, open an [issue](https://github.com/suyuan2022/suyuan-skill/issues).
 
 ## License
 
-MIT
-
----
-
-<p align="center">
-  <sub>Built by <a href="https://github.com/suyuan2022">Suyuan</a> — someone who works with AI, not for AI</sub>
-</p>
+MIT.
