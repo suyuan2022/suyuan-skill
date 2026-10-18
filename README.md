@@ -4,7 +4,7 @@
 
 # suyuan-skill
 
-我是夙愿（X：[@suyuan1711](https://x.com/suyuan1711)），白天在一家 AI 创业公司做 Agent 产品。这里是我干活时用的几个 AI Skill，都是碰到具体的麻烦才写的。Claude Code 和 Codex 都能装。
+我是夙愿（X：[@suyuan1711](https://x.com/suyuan1711)），在一家 AI 创业公司做 Agent 产品。这里是我干活时用的几个 AI Skill，都是碰到具体的麻烦才写的。
 
 Skill 就是一份写给 agent 的说明书：装上以后，你说到相关的事，agent 会照着它来干。
 
@@ -15,7 +15,6 @@ Skill 就是一份写给 agent 的说明书：装上以后，你说到相关的�
 | 手上事太多，拿不准这件该不该接、该不该自己干 | [task-triage](#task-triage) |
 | 想把 Get 笔记里的录音和笔记整个搬到自己电脑上 | [get-biji](#get-biji) |
 | 想把一个视频、播客或者手机里的录音转成文字 | [get-biji](#get-biji) |
-| 代码写完，想让另一家模型挑一遍刺 | [codex-review](#codex-review) |
 
 ## 安装
 
@@ -107,17 +106,6 @@ AI 交出来的东西，常常挑不出错，可换谁来写都差不多。break
 装完要在 skill 目录里跑一次 `npm install && npx playwright install chromium`（会下载约 250MB 的浏览器，只用来登录），跟 agent 说一声它会自己跑。第一次用会弹出浏览器登录 biji.com，所以得在你自己的电脑上，之后大约 90 天不用再登。转本地音视频还要装 [ffmpeg](https://ffmpeg.org)。笔记存在你指定的目录，登录态存在 `~/.config/get-biji/`，重装或更新 skill 都不会丢。
 
 基于 [skychentian/GET-biji](https://github.com/skychentian/GET-biji) 改的，经作者同意收录：同步部分是原作者写的，逐字稿脚本是我加的。
-
-<a id="codex-review"></a>
-### codex-review：让另一家模型给代码挑刺
-
-同一个模型写、同一个模型审，盲区是一样的。codex-review 让 Claude 调用 OpenAI 的 Codex，开两个 GPT 模型各自审同一份代码，彼此看不到对方的结论，再由 Claude 对比两边、裁决分歧。
-
-默认只看不改。也可以让它直接修、做一次全面的安全检查，或者在你不在的时候自己跑完。
-
-需要能用 Codex 的 OpenAI 账号，先装好 Codex CLI 并登录：`npm install -g @openai/codex`，然后 `codex login`。
-
-怎么叫它：「让 Codex 看看这段代码」「review 一下」
 
 ---
 

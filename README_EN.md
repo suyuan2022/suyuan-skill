@@ -4,7 +4,7 @@
 
 # suyuan-skill
 
-I'm Suyuan (X: [@suyuan1711](https://x.com/suyuan1711)), and by day I build agent products at an AI startup. These are the AI skills I use in my own work. Each one started with a specific problem I kept running into. They install in both Claude Code and Codex.
+I'm Suyuan (X: [@suyuan1711](https://x.com/suyuan1711)), and I build agent products at an AI startup. These are the AI skills I use in my own work. Each one started with a specific problem I kept running into.
 
 A skill is a manual written for your agent: once it's installed, the agent follows it whenever you bring up something it covers.
 
@@ -15,7 +15,6 @@ A skill is a manual written for your agent: once it's installed, the agent follo
 | have too much on your plate and can't tell whether to take something on, or do it yourself | [task-triage](#task-triage) |
 | want your Get Notes recordings and notes copied over to your own computer | [get-biji](#get-biji) |
 | want a video, podcast, or recording on your phone turned into text | [get-biji](#get-biji) |
-| finish some code and want a different model to pick it apart | [codex-review](#codex-review) |
 
 ## Install
 
@@ -107,17 +106,6 @@ If you just want to save and search notes from a chat, Get's official [MCP](http
 After installing, run `npm install && npx playwright install chromium` once in the skill folder (it downloads a ~250MB browser used only for login), or just ask your agent to. The first run opens a browser to log in to biji.com, so do it on your own computer; after that you won't need to log in again for about 90 days. Transcribing local audio and video also needs [ffmpeg](https://ffmpeg.org). Notes go to the folder you choose and the login lives in `~/.config/get-biji/`, so reinstalling or updating the skill loses nothing.
 
 Built on [skychentian/GET-biji](https://github.com/skychentian/GET-biji) and included with the author's permission: the sync part is theirs, the transcript script is mine.
-
-<a id="codex-review"></a>
-### codex-review: have a different model pick your code apart
-
-If the same model writes and reviews the code, it has the same blind spots both times. codex-review has Claude call OpenAI's Codex and run two GPT models on the same code, each reviewing on its own without seeing the other's findings. Claude then compares both sides and settles the disagreements.
-
-By default it only reviews and changes nothing. You can also have it fix things directly, run a full security check, or finish on its own while you're away.
-
-You need an OpenAI account with Codex access. Install the Codex CLI and log in first: `npm install -g @openai/codex`, then `codex login`.
-
-How to call it: "Have Codex look at this code", "review this".
 
 ---
 
