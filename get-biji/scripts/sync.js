@@ -126,7 +126,8 @@ async function main() {
     const syncedIds = new Set(sameDir ? state.syncedIds || [] : []);
     console.log(`📊 Previously synced: ${syncedIds.size} notes\n`);
 
-    // fullSyncAt: set once every note in the account has been synced, so readers know the local copy is complete
+    // fullSyncAt: when a sync without SINCE_DATE last finished with every note in the account on disk.
+    // Notes that reach Get later (recorder uploads can lag by days) are only picked up by the next such sync.
     let fullSyncAt = sameDir ? state.fullSyncAt : undefined;
     const save = () => saveSyncState({
         outputDir,
@@ -152,7 +153,7 @@ async function main() {
 
     if (newNotes.length === 0) {
         if (!SINCE_DATE) {
-            fullSyncAt = fullSyncAt || new Date().toISOString();
+            fullSyncAt = new Date().toISOString();
             save();
         }
         console.log('✅ All up to date.');
@@ -208,7 +209,7 @@ async function main() {
     }
 
     if (!SINCE_DATE && toSync.length === newNotes.length && failed.length === 0) {
-        fullSyncAt = fullSyncAt || new Date().toISOString();
+        fullSyncAt = new Date().toISOString();
         save();
     }
 
