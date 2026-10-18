@@ -1,0 +1,25 @@
+{
+  "name": "get-notes-sync-skill",
+  "version": "1.0.0",
+  "description": "An AI Skill to sync Get Notes (biji.com) to local Markdown files.",
+  "main": "scripts/sync.js",
+  "scripts": {
+    "sync": "node scripts/sync.js",
+    "dedupe": "node scripts/dedupe.js"
+  },
+  "keywords": [
+    "ai",
+    "skill",
+    "obsidian",
+    "sync",
+    "get-notes"
+  ],
+  "author": "Sky Chen",
+  "license": "MIT",
+  "dependencies": {
+    "playwright": "^1.40.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

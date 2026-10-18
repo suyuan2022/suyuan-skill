@@ -1,0 +1,20 @@
+# Dependencies
+node_modules/
+.DS_Store
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Runtime data (Do not commit these!)
+notes/
+.auth-state.json
+.token-cache.json
+.sync-state.json
+.activity-log.json
+.link-transcript-ids.json
+*.bak-*
+
+# Environment
+.env
