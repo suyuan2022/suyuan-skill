@@ -104,7 +104,7 @@ AI 交出来的东西，常常挑不出错，可换谁来写都差不多。break
 
 只想在对话里存笔记、搜笔记，装 Get 官方的 [MCP](https://www.npmjs.com/package/@getnote/mcp) 就够了，它能按意思搜。get-biji 管的是官方不做的那两件：整个搬到本地，和上传音视频转写。
 
-装完要在 skill 目录里跑一次 `npm install && npx playwright install chromium`，跟 agent 说一声它会自己跑。第一次用会弹出浏览器登录 biji.com，之后大约 90 天不用再登。转本地音视频还要装 [ffmpeg](https://ffmpeg.org)。
+装完要在 skill 目录里跑一次 `npm install && npx playwright install chromium`（会下载约 250MB 的浏览器，只用来登录），跟 agent 说一声它会自己跑。第一次用会弹出浏览器登录 biji.com，所以得在你自己的电脑上，之后大约 90 天不用再登。转本地音视频还要装 [ffmpeg](https://ffmpeg.org)。笔记存在你指定的目录，登录态存在 `~/.config/get-biji/`，重装或更新 skill 都不会丢。
 
 基于 [skychentian/GET-biji](https://github.com/skychentian/GET-biji) 改的，经作者同意收录：同步部分是原作者写的，逐字稿脚本是我加的。
 

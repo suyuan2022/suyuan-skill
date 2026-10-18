@@ -31,11 +31,12 @@ const {
     buildTranscriptMarkdown,
 } = require('./format');
 
+const { STATE_FILES, readState, resolveOutputDir } = require('./paths');
+
 // ============================================================
 // Config
 // ============================================================
 
-const OUTPUT_DIR = process.env.OUTPUT_DIR || path.join(process.cwd(), 'notes');
 const TEST_LIMIT = process.env.TEST_LIMIT ? parseInt(process.env.TEST_LIMIT) : 0; // 0 = sync all
 const SINCE_DATE = process.env.SINCE_DATE || ''; // Only sync notes from this date onwards ('' = all)
 
@@ -109,17 +110,30 @@ async function main() {
     console.log('   Get Notes Auto Sync v3');
     console.log('========================================\n');
 
-    const outputDir = OUTPUT_DIR;
+    const outputDir = resolveOutputDir();
+    console.log(`📁 Notes directory: ${outputDir}\n`);
 
     if (!fs.existsSync(outputDir)) {
         fs.mkdirSync(outputDir, { recursive: true });
-        console.log(`📁 Created: ${outputDir}\n`);
     }
 
-    // Load sync state
+    // Load sync state; it belongs to one notes directory, so a new directory starts from scratch
     const state = loadSyncState();
-    const syncedIds = new Set(state.syncedIds || []);
+    const sameDir = !state.outputDir || state.outputDir === outputDir;
+    if (!sameDir) {
+        console.log(`📂 Notes directory changed (was ${state.outputDir}): syncing everything into the new one\n`);
+    }
+    const syncedIds = new Set(sameDir ? state.syncedIds || [] : []);
     console.log(`📊 Previously synced: ${syncedIds.size} notes\n`);
+
+    // fullSyncAt: set once every note in the account has been synced, so readers know the local copy is complete
+    let fullSyncAt = sameDir ? state.fullSyncAt : undefined;
+    const save = () => saveSyncState({
+        outputDir,
+        fullSyncAt,
+        syncedIds: Array.from(syncedIds),
+        lastSyncTime: new Date().toISOString(),
+    });
 
     // Fetch all notes list
     const allNotes = await fetchAllNotes();
@@ -132,13 +146,15 @@ async function main() {
     console.log(`📅 Notes from ${SINCE_DATE || 'the beginning'}: ${dateFiltered.length} (skipped ${allNotes.length - dateFiltered.length} older)`);
 
     // Filter new notes (not yet synced), skipping temporary notes made by link-transcript.js
-    let transcriptIds = [];
-    try { transcriptIds = JSON.parse(fs.readFileSync(path.join(__dirname, '../.link-transcript-ids.json'), 'utf8')); } catch { }
-    const skipIds = new Set(transcriptIds);
+    const skipIds = new Set(readState(STATE_FILES.transcriptLedger, []));
     const newNotes = dateFiltered.filter(n => !syncedIds.has(n.note_id) && !skipIds.has(n.note_id));
     console.log(`🆕 New notes to sync: ${newNotes.length}\n`);
 
     if (newNotes.length === 0) {
+        if (!SINCE_DATE) {
+            fullSyncAt = fullSyncAt || new Date().toISOString();
+            save();
+        }
         console.log('✅ All up to date.');
         return;
     }
@@ -154,6 +170,7 @@ async function main() {
     let savedCount = 0;
     let transcriptCount = 0;
     let separateCount = 0;
+    const failed = [];
 
     for (let i = 0; i < toSync.length; i++) {
         const note = toSync[i];
@@ -173,30 +190,41 @@ async function main() {
                 status.push(result.separateTranscript ? '原文(separate)' : '原文(inline)');
                 if (result.separateTranscript) separateCount++;
             }
-            console.log(`  ✅ ${path.join(OUTPUT_DIR, result.dateStr, result.summaryFilename)} ${status.join(' ')}`);
+            console.log(`  ✅ ${path.join(outputDir, result.dateStr, result.summaryFilename)} ${status.join(' ')}`);
 
             // Track synced
             syncedIds.add(note.note_id);
             savedCount++;
 
-            // Incremental state save
-            saveSyncState({
-                syncedIds: Array.from(syncedIds),
-                lastSyncTime: new Date().toISOString(),
-            });
+            // Incremental state save: an interrupted run resumes where it stopped
+            save();
 
         } catch (e) {
             console.log(`  ⚠️ Failed: ${e.message}`);
+            failed.push(`${dateStr} ${note.title || 'Untitled'}: ${e.message}`);
         }
 
         if (i < toSync.length - 1) await delay(500);
     }
 
+    if (!SINCE_DATE && toSync.length === newNotes.length && failed.length === 0) {
+        fullSyncAt = fullSyncAt || new Date().toISOString();
+        save();
+    }
+
     console.log('\n========================================');
-    console.log(`📊 Sync Completed!`);
+    console.log(failed.length ? `📊 Sync finished with ${failed.length} failed` : `📊 Sync Completed`);
     console.log(`   ✅ Saved: ${savedCount}`);
     console.log(`   📝 With Transcripts: ${transcriptCount} (${separateCount} separate, ${transcriptCount - separateCount} inline)`);
+    if (failed.length) {
+        console.log(`   ⚠️ Failed: ${failed.length} (run again to retry only these)`);
+        failed.forEach(f => console.log(`      - ${f}`));
+        process.exitCode = 1;
+    }
     console.log('========================================\n');
 }
 
-main().catch(console.error);
+main().catch(e => {
+    console.error(`❌ ${e.message}`);
+    process.exit(1);
+});

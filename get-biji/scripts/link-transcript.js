@@ -30,10 +30,11 @@ const path = require('path');
 const crypto = require('crypto');
 const { execFileSync } = require('child_process');
 const { CONFIG, getToken } = require('./api');
+const { STATE_FILES, readState, writeState } = require('./paths');
 
 const NOTES_API = CONFIG.authApiUrl;   // notes-api.biji.com
 const LEGACY_API = CONFIG.baseUrl;     // get-notes.luojilab.com
-const LEDGER = path.join(__dirname, '../.link-transcript-ids.json');
+const LEDGER = STATE_FILES.transcriptLedger;
 
 const PROMPT = '请把这条视频的语音逐字稿完整输出：只修正语音识别造成的错别字、同音字和中英文专有名词拼写（如 Claude Code、Figma、CLI），补全标点、按意思分段。不要删减、不要概括、不要改写说法、不要加标题和任何说明。';
 
@@ -83,10 +84,9 @@ async function normalizeUrl(input) {
 }
 
 function remember(noteId) {
-    let ids = [];
-    try { ids = JSON.parse(fs.readFileSync(LEDGER, 'utf8')); } catch { }
+    const ids = readState(LEDGER, []);
     ids.push(noteId);
-    fs.writeFileSync(LEDGER, JSON.stringify(ids.slice(-1000)));
+    writeState(LEDGER, ids.slice(-1000));
 }
 
 async function streamNote(apiPath, body) {

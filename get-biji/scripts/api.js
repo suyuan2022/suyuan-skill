@@ -3,10 +3,11 @@
 /**
  * Get Notes API Client
  * Auth chain: cached JWT → refresh_token (90d) → Playwright browser login
+ * Logs go to stderr so that callers' stdout stays clean.
  */
 
 const fs = require('fs');
-const path = require('path');
+const { STATE_FILES, readState, writeState } = require('./paths');
 
 const CONFIG = {
     baseUrl: 'https://get-notes.luojilab.com',
@@ -19,28 +20,35 @@ const CONFIG = {
     pageSize: 20,
     delayMs: 500,
 
-    authStateFile: path.join(__dirname, '../.auth-state.json'),
-    tokenCacheFile: path.join(__dirname, '../.token-cache.json'),
-    syncStateFile: path.join(__dirname, '../.sync-state.json'),
+    authStateFile: STATE_FILES.authState,
+    tokenCacheFile: STATE_FILES.tokenCache,
+    syncStateFile: STATE_FILES.syncState,
+
+    loginTimeoutMs: 10 * 60 * 1000,
 };
 
+// In-process JWT and its expiry (unix seconds; 0 = unknown)
 let token = null;
+let tokenExpireAt = 0;
+
+function useToken(t, expireAt) {
+    token = t;
+    tokenExpireAt = expireAt ? Number(expireAt) : 0;
+    return token;
+}
 
 function loadTokenCache() {
-    if (!fs.existsSync(CONFIG.tokenCacheFile)) return null;
-    try {
-        return JSON.parse(fs.readFileSync(CONFIG.tokenCacheFile, 'utf8'));
-    } catch { return null; }
+    return readState(CONFIG.tokenCacheFile, null);
 }
 
 function saveTokenCache(data) {
-    fs.writeFileSync(CONFIG.tokenCacheFile, JSON.stringify({
+    writeState(CONFIG.tokenCacheFile, {
         token: data.token,
         tokenExpireAt: data.tokenExpireAt || null,
         refreshToken: data.refreshToken || null,
         refreshTokenExpireAt: data.refreshTokenExpireAt || null,
         savedAt: new Date().toISOString(),
-    }, null, 2), 'utf8');
+    });
 }
 
 /**
@@ -68,8 +76,8 @@ async function silentRefresh(refreshToken) {
             refreshTokenExpireAt: t.refresh_token_expire_at,
         });
 
-        console.log('🔄 Token refreshed silently.');
-        return t.token;
+        console.error('🔄 Token refreshed silently.');
+        return useToken(t.token, t.token_expire_at);
     } catch {
         return null;
     }
@@ -102,81 +110,95 @@ function getRefreshToken(cache) {
     return null;
 }
 
-async function getToken() {
-    if (token) return token;
+/**
+ * Returns a JWT that is valid for at least 5 more minutes.
+ * force: skip the in-process and cached JWT (the server rejected it), go straight to refresh.
+ */
+async function getToken({ force = false } = {}) {
+    const fresh = exp => !exp || Date.now() / 1000 < Number(exp) - 300;
+
+    if (!force && token && fresh(tokenExpireAt)) return token;
 
     const cache = loadTokenCache();
 
     // 1. Try cached JWT (still valid for >5 min)
-    if (cache?.tokenExpireAt && Date.now() / 1000 < cache.tokenExpireAt - 300) {
-        token = cache.token;
-        return token;
+    if (!force && cache?.token && cache.tokenExpireAt && fresh(cache.tokenExpireAt)) {
+        return useToken(cache.token, cache.tokenExpireAt);
     }
 
     // 2. Try silent refresh via refresh_token (~90 day validity)
     const refreshTk = getRefreshToken(cache);
     if (refreshTk) {
         const newToken = await silentRefresh(refreshTk);
-        if (newToken) {
-            token = newToken;
-            return token;
-        }
+        if (newToken) return newToken;
     }
 
-    // 3. Last resort: open browser
-    console.log('🔐 Token and refresh_token both expired. Launching browser...');
-    const { chromium } = require('playwright');
-
-    const browser = await chromium.launch({ headless: false });
-    const context = fs.existsSync(CONFIG.authStateFile)
-        ? await browser.newContext({ storageState: CONFIG.authStateFile })
-        : await browser.newContext();
-
-    const page = await context.newPage();
-    await page.goto(CONFIG.loginUrl, { waitUntil: 'networkidle' });
-
-    let isLoggedIn = await page.evaluate(() => !!localStorage.getItem('token'));
-
-    if (!isLoggedIn) {
-        console.log('\n  ⏳ Please log in via the browser window...\n');
-        while (!isLoggedIn) {
-            await new Promise(r => setTimeout(r, 2000));
-            isLoggedIn = await page.evaluate(() => !!localStorage.getItem('token'));
-        }
-        console.log('  ✅ Login successful!');
-    }
-
-    const authInfo = await page.evaluate(() => ({
-        token: localStorage.getItem('token'),
-        tokenExpireAt: localStorage.getItem('token_expire_at'),
-        refreshToken: localStorage.getItem('refresh_token'),
-        refreshTokenExpireAt: localStorage.getItem('refresh_token_expire_at'),
-    }));
-
-    token = authInfo.token;
-
-    await context.storageState({ path: CONFIG.authStateFile });
-    saveTokenCache({
-        token: authInfo.token,
-        tokenExpireAt: authInfo.tokenExpireAt ? parseInt(authInfo.tokenExpireAt) : null,
-        refreshToken: authInfo.refreshToken || null,
-        refreshTokenExpireAt: authInfo.refreshTokenExpireAt ? parseInt(authInfo.refreshTokenExpireAt) : null,
-    });
-
-    await browser.close();
-    return token;
+    // 3. Last resort: browser login
+    return browserLogin();
 }
 
-async function fetchWithAuth(url) {
-    const t = await getToken();
+async function browserLogin() {
+    console.error('🔐 Login required: opening a browser window, log in to biji.com there (waiting up to 10 min)...');
+    let browser;
+    try {
+        const { chromium } = require('playwright');
+        browser = await chromium.launch({ headless: false });
+    } catch (e) {
+        throw new Error(`Cannot open a browser for login. It needs a desktop session, plus "npm install && npx playwright install chromium" in the skill folder. ${e.message.split('\n')[0]}`);
+    }
+
+    try {
+        const context = fs.existsSync(CONFIG.authStateFile)
+            ? await browser.newContext({ storageState: CONFIG.authStateFile })
+            : await browser.newContext();
+        const page = await context.newPage();
+        await page.goto(CONFIG.loginUrl, { waitUntil: 'networkidle' });
+
+        const loggedIn = () => page.evaluate(() => !!localStorage.getItem('token'));
+        const deadline = Date.now() + CONFIG.loginTimeoutMs;
+        let isLoggedIn = await loggedIn();
+        while (!isLoggedIn) {
+            if (Date.now() > deadline) throw new Error('Login not completed within 10 minutes. Run the command again to retry.');
+            await delay(2000);
+            try {
+                isLoggedIn = await loggedIn();
+            } catch {
+                throw new Error('The login window was closed before login finished. Run the command again to retry.');
+            }
+        }
+        console.error('✅ Login successful');
+
+        const authInfo = await page.evaluate(() => ({
+            token: localStorage.getItem('token'),
+            tokenExpireAt: localStorage.getItem('token_expire_at'),
+            refreshToken: localStorage.getItem('refresh_token'),
+            refreshTokenExpireAt: localStorage.getItem('refresh_token_expire_at'),
+        }));
+
+        writeState(CONFIG.authStateFile, await context.storageState());
+        saveTokenCache({
+            token: authInfo.token,
+            tokenExpireAt: authInfo.tokenExpireAt ? parseInt(authInfo.tokenExpireAt) : null,
+            refreshToken: authInfo.refreshToken || null,
+            refreshTokenExpireAt: authInfo.refreshTokenExpireAt ? parseInt(authInfo.refreshTokenExpireAt) : null,
+        });
+        return useToken(authInfo.token, authInfo.tokenExpireAt);
+    } finally {
+        await browser.close().catch(() => { });
+    }
+}
+
+async function fetchWithAuth(url, { retried = false } = {}) {
+    const t = await getToken({ force: retried });
     const response = await fetch(url, {
         headers: { 'Authorization': `Bearer ${t}`, 'Accept': 'application/json' }
     });
 
+    const data = response.ok ? await response.json() : null;
+    const expired = response.status === 401 || data?.message === 'LoginRequired';
+    if (expired && !retried) return fetchWithAuth(url, { retried: true });
+    if (expired) throw new Error('Token expired and could not be refreshed');
     if (!response.ok) throw new Error(`API Error: ${response.status}`);
-
-    const data = await response.json();
-    if (data.message === 'LoginRequired') throw new Error('Token expired');
 
     return data;
 }
@@ -194,7 +216,7 @@ async function fetchAllNotes() {
     let sinceId = null;
     let hasMore = true;
 
-    console.log('📋 Fetching notes list...');
+    console.error('📋 Fetching notes list...');
 
     while (hasMore) {
         let url = `${CONFIG.baseUrl}${CONFIG.listEndpoint}?limit=${CONFIG.pageSize}&sort=create_desc`;
@@ -206,7 +228,7 @@ async function fetchAllNotes() {
         if (notes.length === 0) {
             hasMore = false;
         } else {
-            process.stdout.write('.');
+            process.stderr.write('.');
             allNotes = allNotes.concat(notes);
             sinceId = notes[notes.length - 1].note_id;
             await delay(CONFIG.delayMs);
@@ -231,7 +253,7 @@ async function fetchAllNotes() {
     });
 
     const dupeCount = uniqueById.length - unique.length;
-    console.log(`\n📁 Found ${uniqueById.length} notes (${dupeCount} content duplicates removed) → ${unique.length} unique.\n`);
+    console.error(`\n📁 Found ${uniqueById.length} notes (${dupeCount} content duplicates removed) → ${unique.length} unique.\n`);
     return unique;
 }
 
@@ -254,14 +276,11 @@ async function fetchNoteDetail(noteId) {
 
 // Sync state helpers
 function loadSyncState() {
-    if (fs.existsSync(CONFIG.syncStateFile)) {
-        return JSON.parse(fs.readFileSync(CONFIG.syncStateFile, 'utf8'));
-    }
-    return { syncedIds: [] };
+    return readState(CONFIG.syncStateFile, { syncedIds: [] });
 }
 
 function saveSyncState(state) {
-    fs.writeFileSync(CONFIG.syncStateFile, JSON.stringify(state, null, 2), 'utf8');
+    writeState(CONFIG.syncStateFile, state);
 }
 
 module.exports = {

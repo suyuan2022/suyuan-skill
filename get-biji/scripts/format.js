@@ -317,11 +317,9 @@ function buildSummaryMarkdown(note, transcript, transcriptFilename, startTimeMs)
     md += `time: "${timeStr}"\n`;
     md += `title: "${(note.title || 'Untitled').replace(/"/g, '\\"')}"\n`;
     md += `note_id: ${note.note_id}\n`;
+    if (note.note_type) md += `note_type: ${note.note_type}\n`;
     if (durationMin > 0) md += `duration_min: ${durationMin}\n`;
     if (transcriptFilename) md += `transcript: "${transcriptFilename}"\n`;
-    md += `场景:\n`;
-    md += `人物: []\n`;
-    md += `话题: []\n`;
     md += `---\n\n`;
 
     if (content) md += `${content}\n\n`;

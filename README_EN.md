@@ -104,7 +104,7 @@ Two things for [Get Notes](https://biji.com) users.
 
 If you just want to save and search notes from a chat, Get's official [MCP](https://www.npmjs.com/package/@getnote/mcp) is enough, and it can search by meaning. get-biji covers the two things the official tools don't: moving everything onto your computer, and transcribing uploaded audio and video.
 
-After installing, run `npm install && npx playwright install chromium` once in the skill folder, or just ask your agent to. The first run opens a browser to log in to biji.com; after that you won't need to log in again for about 90 days. Transcribing local audio and video also needs [ffmpeg](https://ffmpeg.org).
+After installing, run `npm install && npx playwright install chromium` once in the skill folder (it downloads a ~250MB browser used only for login), or just ask your agent to. The first run opens a browser to log in to biji.com, so do it on your own computer; after that you won't need to log in again for about 90 days. Transcribing local audio and video also needs [ffmpeg](https://ffmpeg.org). Notes go to the folder you choose and the login lives in `~/.config/get-biji/`, so reinstalling or updating the skill loses nothing.
 
 Built on [skychentian/GET-biji](https://github.com/skychentian/GET-biji) and included with the author's permission: the sync part is theirs, the transcript script is mine.
 

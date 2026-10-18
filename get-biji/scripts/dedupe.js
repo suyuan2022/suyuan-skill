@@ -3,106 +3,75 @@
 /**
  * Get Notes Deduplication Tool
  *
- * Scans the notes directory and removes duplicate files based on `note_id`.
- * Keeps the largest file (assuming it's the most complete one).
+ * Finds summary files that share a `note_id` anywhere under the notes directory,
+ * keeps the largest one, and deletes the rest together with their `_原文.md` transcript file.
+ * A summary and its own `_原文.md` share a note_id by design, so transcript files are never compared.
  */
 
 const fs = require('fs');
 const path = require('path');
+const { resolveOutputDir } = require('./paths');
 
-// Configuration
-// Default to ./notes in the current directory if not specified
-const NOTES_DIR = process.env.OUTPUT_DIR || path.join(process.cwd(), 'notes');
+const TRANSCRIPT_SUFFIX = '_原文.md';
 
-function extractNoteId(filepath) {
-    try {
-        const content = fs.readFileSync(filepath, 'utf8');
-        const match = content.match(/note_id:\s*(\d+)/);
-        return match ? match[1] : null;
-    } catch (e) {
-        return null;
-    }
+function listSummaryFiles(dir) {
+    return fs.readdirSync(dir, { withFileTypes: true }).flatMap(entry => {
+        const full = path.join(dir, entry.name);
+        if (entry.isDirectory()) return listSummaryFiles(full);
+        return entry.name.endsWith('.md') && !entry.name.endsWith(TRANSCRIPT_SUFFIX) ? [full] : [];
+    });
 }
 
-function formatSize(bytes) {
-    if (bytes < 1024) return bytes + ' B';
-    return (bytes / 1024).toFixed(1) + ' KB';
+function frontmatterField(content, field) {
+    const match = content.match(new RegExp(`^${field}:\\s*"?([^"\\n]+)"?`, 'm'));
+    return match ? match[1].trim() : null;
 }
 
 function main() {
-    console.log('========================================');
-    console.log('   Get Notes Deduplication');
-    console.log('========================================\n');
+    const notesDir = resolveOutputDir();
+    if (!fs.existsSync(notesDir)) {
+        throw new Error(`Notes directory not found: ${notesDir}`);
+    }
+    console.log(`🔍 Scanning ${notesDir}...\n`);
 
-    if (!fs.existsSync(NOTES_DIR)) {
-        console.error(`❌ Notes directory not found: ${NOTES_DIR}`);
-        console.log('   Please run this script from the parent of your notes folder or set OUTPUT_DIR.');
-        return;
+    const byNoteId = new Map();
+    for (const file of listSummaryFiles(notesDir)) {
+        const content = fs.readFileSync(file, 'utf8');
+        const noteId = frontmatterField(content, 'note_id');
+        if (!noteId) continue;
+        const stats = fs.statSync(file);
+        const entry = { file, size: stats.size, mtime: stats.mtimeMs, transcript: frontmatterField(content, 'transcript') };
+        byNoteId.set(noteId, [...(byNoteId.get(noteId) || []), entry]);
     }
 
-    console.log(`🔍 Scanning directory: ${NOTES_DIR}...\n`);
-
-    const files = fs.readdirSync(NOTES_DIR).filter(f => f.endsWith('.md'));
-    const noteMap = new Map();
-    let validFiles = 0;
-
-    files.forEach(file => {
-        const filepath = path.join(NOTES_DIR, file);
-        const noteId = extractNoteId(filepath);
-
-        if (noteId) {
-            if (!noteMap.has(noteId)) {
-                noteMap.set(noteId, []);
-            }
-            const stats = fs.statSync(filepath);
-            noteMap.get(noteId).push({
-                file,
-                filepath,
-                size: stats.size,
-                mtime: stats.mtimeMs
-            });
-            validFiles++;
-        }
-    });
-
-    console.log(`📁 Found ${validFiles} valid note files\n`);
-
-    // Find duplicates
-    const duplicates = Array.from(noteMap.entries()).filter(([_, files]) => files.length > 1);
-
+    const duplicates = [...byNoteId.entries()].filter(([, files]) => files.length > 1);
     if (duplicates.length === 0) {
-        console.log('✅ No duplicates found. Clean!');
+        console.log('✅ No duplicates found.');
         return;
     }
 
-    console.log(`⚠️ Found ${duplicates.length} sets of duplicates\n`);
-    let deletedCount = 0;
-
-    duplicates.forEach(([noteId, files]) => {
-        // Sort by size (descending), then by mtime (newest first)
-        files.sort((a, b) => {
-            if (b.size !== a.size) return b.size - a.size; // Keep larger file
-            return b.mtime - a.mtime; // Keep newer file
-        });
-
-        const keep = files[0];
-        const remove = files.slice(1);
-
-        console.log(`📝 Note ID: ${noteId}`);
-        console.log(`   Keep:   ${keep.file} (${formatSize(keep.size)})`);
-
-        remove.forEach(f => {
-            console.log(`   Delete: ${f.file} (${formatSize(f.size)})`);
-            fs.unlinkSync(f.filepath);
-            deletedCount++;
-        });
-        console.log('');
-    });
-
-    console.log('========================================');
-    console.log(`📊 Deduplication Complete!`);
-    console.log(`   🗑️ Deleted: ${deletedCount} files`);
-    console.log('========================================\n');
+    let deleted = 0;
+    for (const [noteId, files] of duplicates) {
+        files.sort((a, b) => b.size - a.size || b.mtime - a.mtime);
+        const [keep, ...remove] = files;
+        console.log(`📝 note_id ${noteId}\n   Keep:   ${path.relative(notesDir, keep.file)}`);
+        for (const f of remove) {
+            const paired = f.transcript ? path.join(path.dirname(f.file), f.transcript) : null;
+            for (const target of [f.file, paired]) {
+                if (target && target !== keep.file && fs.existsSync(target)) {
+                    console.log(`   Delete: ${path.relative(notesDir, target)}`);
+                    fs.unlinkSync(target);
+                    deleted++;
+                }
+            }
+        }
+    }
+    console.log(`\n📊 Deleted ${deleted} files in ${duplicates.length} duplicate sets.`);
 }
 
-main();
+try {
+    main();
+} catch (e) {
+    console.error(`❌ ${e.message}`);
+    process.exit(1);
+}
