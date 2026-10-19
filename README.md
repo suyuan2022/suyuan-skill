@@ -4,7 +4,7 @@
 
 # suyuan-skill
 
-我是夙愿（X：[@suyuan1711](https://x.com/suyuan1711)），在一家 AI 创业公司做 Agent 产品。这里是我干活时用的几个 AI Skill，都是碰到具体的麻烦才写的。
+我是夙愿（X：[@suyuan1711](https://x.com/suyuan1711)），在一家 AI 创业公司做 Agent 产品。这里是我反复打磨的精品 Skill，会一直更新。
 
 Skill 就是一份写给 agent 的说明书：装上以后，你说到相关的事，agent 会照着它来干。
 

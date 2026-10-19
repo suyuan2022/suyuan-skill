@@ -4,7 +4,7 @@
 
 # suyuan-skill
 
-I'm Suyuan (X: [@suyuan1711](https://x.com/suyuan1711)), and I build agent products at an AI startup. These are the AI skills I use in my own work. Each one started with a specific problem I kept running into.
+I'm Suyuan (X: [@suyuan1711](https://x.com/suyuan1711)), and I build agent products at an AI startup. These are skills I've refined over and over, and I keep updating them.
 
 A skill is a manual written for your agent: once it's installed, the agent follows it whenever you bring up something it covers.
 
