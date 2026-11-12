@@ -16,7 +16,6 @@ Skill 就是一份写给 agent 的说明书：装上以后，你说到相关的�
 | 想把一个视频、播客或者手机里的录音转成文字 | [get-biji](#get-biji) |
 | 被 Claude 封过号的电脑，想先备份、再把本机的 Claude 记录清干净 | [claude-cleanup](#claude-cleanup) |
 | Claude Code 一开局上下文就很大，想关掉用不上的工具和插件 | [claude-cleanup](#claude-cleanup) |
-| 想让 Clash 国内直连、其余全走海外，节点断了或 Clash 挂了也不漏回本地网络 | [clash-guard](#clash-guard) |
 
 ## 安装
 
@@ -108,38 +107,6 @@ Claude Code 不能清理它自己正在用的 `~/.claude`，所以清理这一�
 **开局上下文瘦身（macOS、Windows 都行）。** Claude Code 每次开局都要先读一遍工具、MCP、skill、插件的说明，装多了白占上下文。它先实测开局占了多少、哪些近期没用过、各自关掉能省多少，跟你确认后只改 `~/.claude/settings.json` 里你同意的那几项，改之前先备份，每一项都能改回去，新开会话生效。
 
 这个 skill 只管本机清理，不能用来绕过封号、支付检查或平台风控。
-
-<a id="clash-guard"></a>
-### clash-guard：Clash 防漏，国内直连，其余全走海外，断了也不漏
-
-用 Claude 最容易暴露的，往往是梯子没开全局，或者海外线路一断，流量悄悄改走了本地网络。clash-guard 把 macOS 上的 Clash Verge Rev 配成这样：
-
-- 国内域名和国内 IP 直连，其余所有流量都走一个「海外出口」组，组里没有 DIRECT。国内名单用 [Loyalsoldier/clash-rules](https://github.com/Loyalsoldier/clash-rules) 的 `direct` 和 `cncidr`，每天自动更新。这两份名单里混着几百条海外公司在国内能直连的域名，比如 Google 的统计脚本，clash-guard 会先把这些拦到海外。
-- 开 TUN，终端里的 Claude Code 跟浏览器走同一个出口。
-- 海外节点挂了，Claude 跟着断网，不会改走本地网络。Clash 本身崩了或者被退出，系统防火墙（macOS 自带的 pf）也会拦住，不让流量从网卡直接出去。
-- DNS 查询都进 Clash，替你解析海外域名的是海外的 DNS。
-
-出口分两种：自己的 VPS 或专线本身就干净，或者直接用机场里的海外节点，就当出口直接用；单买了静态住宅 SOCKS5、国内又连不上它的，走链式代理，机场节点当第一跳、住宅 IP 当最终出口。
-
-这个不是 skill，是一段 prompt，不用装任何东西。打开 [`prompts/clash-guard.md`](./prompts/clash-guard.md)，点右上角的复制按钮（Copy raw file），整段粘贴给你的 agent（Codex、Claude Code 都行），发出去就开始。
-
-它会先只读体检、列出能用的节点，问你用哪种出口，再做完整备份、写好还原脚本。装服务模式和防火墙要管理员密码，这一步它会写好一个脚本，你自己在「终端」里运行、输开机密码，密码不经过 agent。配完它会逐项检测：国内网站是否直连、claude.ai 看到的 IP 和地区、终端查到的出口 IP、DNS 由谁解析，再跑三个演练：节点挂了、TUN 消失、退出 Clash。每一项都给你看实测结果。
-
-一键还原到配之前的样子（备份目录的完整路径，agent 做完备份会告诉你）：
-
-```bash
-sudo sh ~/clash-guard-backup/备份时间/restore.sh
-```
-
-只想先恢复上网（比如 Clash 打不开了）：
-
-```bash
-sudo sh "/Library/Application Support/clash-guard/off.sh"
-```
-
-写的是 macOS 上 Clash Verge Rev 2.x 的做法；Mihomo Party、Sparkle 能照用同一段覆写脚本，别的客户端和 Windows 它会先跟你说清哪些做不到。防火墙只拦普通程序：Clash 核心以 root 身份运行，所以 root 身份的系统进程不受限制；Claude Code、浏览器这些都受限制。所有节点都挂了的时候，订阅也更新不了，要先用上面那条命令解除，更新完再让 agent 重新配一次。
-
-实测过的环境：macOS 26.4、Clash Verge Rev 2.5.1（mihomo 1.19.25），用 Codex 把这段 prompt 原样跑了直接出口和链式代理两种，从备份、配置、检测、三个演练到一键还原都跑通了。
 
 ---
 
